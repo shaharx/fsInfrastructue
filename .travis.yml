@@ -1,0 +1,22 @@
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t shaharl/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run shaharl/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t shaharl/fsi-client ./client
+  - docker build -t shaharl/fsi-nginx ./nginx
+  - docker build -t shaharl/fsi-server ./server
+  - docker build -t shaharl/fsi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push shaharl/fsi-client
+  - docker push shaharl/fsi-nginx
+  - docker push shaharl/fsi-server
+  - docker push shaharl/fsi-worker
